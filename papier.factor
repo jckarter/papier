@@ -144,7 +144,7 @@ M: papier-world tick-game-world
     '[ center>> _ v- norm-sq ] inv-sort-with ; inline
 
 : slab-vertices ( slab -- av at ac bv bt bc cv ct cc dv dt dc )
-    [ matrix>> ] [ texcoords>> ] [ color>> ] tri {
+    [ matrix>> ] [ [ frame>> ] [ texcoords>> ] bi nth ] [ color>> ] tri {
         [ [ float-4{ -1 -1 0 1 } m4.v ] [                      ] [ ] tri* ]
         [ [ float-4{  1 -1 0 1 } m4.v ] [ { 2 1 0 3 } vshuffle ] [ ] tri* ]
         [ [ float-4{ -1  1 0 1 } m4.v ] [ { 0 3 2 1 } vshuffle ] [ ] tri* ]

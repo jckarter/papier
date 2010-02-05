@@ -6,7 +6,7 @@ io.pathnames json.reader kernel locals math math.matrices.simd
 math.vectors.simd sequences sets specialized-arrays
 strings typed ;
 FROM: alien.c-types => float ;
-SPECIALIZED-ARRAY: float
+SPECIALIZED-ARRAYS: float float-4 ;
 IN: papier.map
 
 ERROR: bad-papier-version version ;
@@ -17,13 +17,15 @@ CONSTANT: papier-map-version 3
     "papier" over at dup papier-map-version = [ drop ] [ bad-papier-version ] if ;
 
 TUPLE: slab
-    { image string }
+    images
+    { frame fixnum }
     { center float-4 }
     { size float-4 }
     { orient float-4 }
     { color float-4 }
+
     { matrix matrix4 }
-    { texcoords float-4 } ;
+    { texcoords float-4-array } ;
 
 VERTEX-FORMAT: papier-vertex
     { "vertex"   float-components 3 f }
@@ -39,9 +41,10 @@ SPECIALIZED-ARRAY: papier-vertex-struct
 
 ERROR: bad-matrix-dim matrix ;
 
-: parse-slab ( hash -- image center size orient color )
+: parse-slab ( hash -- images frame center size orient color )
     {
-        [ "image"  swap at ]
+        [ "images" swap at ]
+        [ "frame"  swap at >fixnum ]
         [ "center" swap at 3 0.0 pad-tail 4 1.0 pad-tail >float-4 ]
         [ "size"   swap at                4 1.0 pad-tail >float-4 ]
         [ "orient" swap at                               >float-4 ]
@@ -56,17 +59,18 @@ TYPED: slab-matrix ( slab: slab -- matrix: matrix4 )
 TYPED: update-slab ( slab: slab -- )
     dup slab-matrix >>matrix drop ;
 
-TYPED: <slab> ( image center size orient color -- slab: slab )
+TYPED: <slab> ( images frame center size orient color -- slab: slab )
     slab new
         swap >>color
         swap >>orient
         swap >>size
         swap >>center
-        swap >>image
+        swap >>frame
+        swap >>images
     dup update-slab ;
 
 TYPED: update-slab-for-atlas ( slab: slab images -- )
-    [ dup image>> ] dip at >float-4 >>texcoords drop ;
+    [ dup images>> ] dip '[ _ at >float-4 ] float-4-array{ } map-as >>texcoords drop ;
 
 : update-slabs-for-atlas ( slabs images -- )
     '[ _ update-slab-for-atlas ] each ; inline
@@ -82,3 +86,4 @@ TYPED: update-slab-for-atlas ( slab: slab images -- )
     [
         [ file-extension "tiff" = ] filter [ dup load-image ] H{ } map>assoc
     ] with-directory-files make-atlas-assoc ;
+
