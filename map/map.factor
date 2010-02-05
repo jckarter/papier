@@ -2,7 +2,7 @@
 USING: accessors alien assocs classes.struct combinators
 combinators.short-circuit fry gpu.shaders images images.atlas
 images.loader io.directories io.encodings.utf8 io.files
-io.pathnames json.reader kernel locals math math.matrices.simd
+io.pathnames json json.reader kernel locals math math.matrices.simd
 math.vectors.simd sequences sets specialized-arrays
 strings typed ;
 FROM: alien.c-types => float ;
@@ -16,7 +16,10 @@ CONSTANT: papier-map-version 3
 : check-papier-version ( hash -- hash )
     "papier" over at dup papier-map-version = [ drop ] [ bad-papier-version ] if ;
 
+UNION: ?string string POSTPONE: f ;
+
 TUPLE: slab
+    { name ?string }
     images
     { frame fixnum }
     { center float-4 }
@@ -41,8 +44,9 @@ SPECIALIZED-ARRAY: papier-vertex-struct
 
 ERROR: bad-matrix-dim matrix ;
 
-: parse-slab ( hash -- images frame center size orient color )
+: parse-slab ( hash -- name images frame center size orient color )
     {
+        [ "name"   swap at [ f ] when-json-null ] 
         [ "images" swap at ]
         [ "frame"  swap at >fixnum ]
         [ "center" swap at 3 0.0 pad-tail 4 1.0 pad-tail >float-4 ]
@@ -59,7 +63,10 @@ TYPED: slab-matrix ( slab: slab -- matrix: matrix4 )
 TYPED: update-slab ( slab: slab -- )
     dup slab-matrix >>matrix drop ;
 
-TYPED: <slab> ( images frame center size orient color -- slab: slab )
+TYPED: cycle-slab-frame ( slab: slab -- )
+    dup images>> length '[ 1 + dup _ < [ drop 0 ] unless ] change-frame drop ;
+
+TYPED: <slab> ( name images frame center size orient color -- slab: slab )
     slab new
         swap >>color
         swap >>orient
@@ -67,6 +74,7 @@ TYPED: <slab> ( images frame center size orient color -- slab: slab )
         swap >>center
         swap >>frame
         swap >>images
+        swap >>name
     dup update-slab ;
 
 TYPED: update-slab-for-atlas ( slab: slab images -- )
@@ -87,3 +95,5 @@ TYPED: update-slab-for-atlas ( slab: slab images -- )
         [ file-extension "tiff" = ] filter [ dup load-image ] H{ } map>assoc
     ] with-directory-files make-atlas-assoc ;
 
+: slabs-by-name ( slabs -- assoc )
+    [ name>> ] filter [ [ name>> ] keep ] H{ } map>assoc ; inline

@@ -1,5 +1,5 @@
 ! (c)2010 Joe Groff bsd license
-USING: accessors alien.c-types alien.data.map arrays
+USING: accessors alien.c-types alien.data.map arrays assocs
 combinators fry game.input game.input.scancodes game.loop
 game.worlds gpu gpu.buffers gpu.framebuffers gpu.render
 gpu.shaders gpu.state gpu.textures hashtables images kernel
@@ -29,6 +29,7 @@ UNIFORM-TUPLE: papier-uniforms
 
 TUPLE: papier-world < game-world
     { slabs array }
+    { slabs-by-name hashtable }
     { slab-images hashtable }
     { vertex-buffer buffer }
     { index-buffer buffer }
@@ -51,7 +52,7 @@ TUPLE: papier-world < game-world
     } set-gpu-state ;
 
 : load-into-world ( world path -- )
-    [ "map" load-papier-map >>slabs ] [
+    [ "map" load-papier-map [ >>slabs ] [ slabs-by-name >>slabs-by-name ] bi ] [
         load-papier-images
         [ >>slab-images ] [ [ dup uniforms>> atlas>> 0 ] dip allocate-texture-image ] bi*
     ] bi
@@ -137,8 +138,12 @@ papier-world H{
     { T{ drag f 3 }           [ drag-eye ] }
 } set-gestures
 
+: molest-slabs ( world -- )
+    slabs-by-name>> "changes" swap at cycle-slab-frame ;
+
 M: papier-world tick-game-world
-    dup focused?>> [ keyboard-input ] [ drop ] if ;
+    [ molest-slabs ] 
+    [ dup focused?>> [ keyboard-input ] [ drop ] if ] bi ;
 
 : order-slabs ( slabs eye -- slabs' )
     '[ center>> _ v- norm-sq ] inv-sort-with ; inline
