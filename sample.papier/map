@@ -1,0 +1,9 @@
+{
+    "papier":3,
+    "slabs":[
+        {"image":"blue.tiff",  "center":[0,0,1], "size":[1,1,1],"color":[1,1,1,1],  "orient":[1,0,0,0]},
+        {"image":"blue.tiff",  "center":[0,1,0], "size":[1,1,1],"color":[1,1,1,0.5],"orient":[0.70710678,-0.70710678,0,0]},
+        {"image":"yellow.tiff","center":[1,0,0], "size":[1,1,1],"color":[1,0.5,1,1],"orient":[0.70710678,0,0.70710678,0]},
+        {"image":"yellow.tiff","center":[-1,0,0],"size":[1,1,1],"color":[1,1,1,1],  "orient":[0.70710678,0,-0.70710678,0]}
+    ]
+}
