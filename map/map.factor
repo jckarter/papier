@@ -60,22 +60,23 @@ TYPED: slab-matrix ( slab: slab -- matrix: matrix4 )
     [ size>> scale-matrix4 m4. ]
     [ orient>> q>matrix4 m4. ] tri ;
 
-TYPED: update-slab ( slab: slab -- )
+TYPED: update-slab-matrix ( slab: slab -- )
     dup slab-matrix >>matrix drop ;
 
 TYPED: cycle-slab-frame ( slab: slab -- )
     dup images>> length '[ 1 + dup _ < [ drop 0 ] unless ] change-frame drop ;
 
-TYPED: <slab> ( name images frame center size orient color -- slab: slab )
-    slab new
-        swap >>color
-        swap >>orient
-        swap >>size
-        swap >>center
-        swap >>frame
-        swap >>images
-        swap >>name
-    dup update-slab ;
+: <slab> ( -- slab ) slab new ; inline
+
+: set-up-slab ( name images frame center size orient color slab -- slab )
+    swap >>color
+    swap >>orient
+    swap >>size
+    swap >>center
+    swap >>frame
+    swap >>images
+    swap >>name
+    dup update-slab-matrix ; inline
 
 TYPED: update-slab-for-atlas ( slab: slab images -- )
     [ dup images>> ] dip '[ _ at >float-4 ] float-4-array{ } map-as >>texcoords drop ;
@@ -85,14 +86,14 @@ TYPED: update-slab-for-atlas ( slab: slab images -- )
 
 : parse-papier-map ( hash -- slabs )
     check-papier-version
-    "slabs" swap at [ parse-slab <slab> ] map ;
+    "slabs" swap at [ parse-slab <slab> set-up-slab ] map ;
 
 : load-papier-map ( path name -- slabs )
     append-path utf8 file-contents json> parse-papier-map ;
 
 : load-papier-images ( path -- images atlas )
     [
-        [ file-extension "tiff" = ] filter [ dup load-image ] H{ } map>assoc
+        [ file-extension { "tiff" "png" } member? ] filter [ dup load-image ] H{ } map>assoc
     ] with-directory-files make-atlas-assoc ;
 
 : slabs-by-name ( slabs -- assoc )
