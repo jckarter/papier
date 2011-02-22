@@ -212,5 +212,5 @@ GAME: papier-game {
         } }
         { use-game-input? t }
         { pref-dim { 1024 768 } }
-        { tick-interval-micros $[ 24 fps ] }
+        { tick-interval-nanos $[ 24 fps ] }
     } ;
