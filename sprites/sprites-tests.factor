@@ -1,5 +1,5 @@
 ! (c)2010 Joe Groff bsd license
-USING: papier.sprites tools.test ;
+USING: combinators papier.sprites tools.test ;
 IN: papier.sprites.tests
 
 [ 10 10 10 11 11 12 10 ]
